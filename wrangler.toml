@@ -1,0 +1,24 @@
+name = "smartflowsocial-publisher"
+main = "src/index.ts"
+compatibility_date = "2023-02-21"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
+# KV namespace bindings. Wrangler 4 provisions this namespace on deploy.
+# The id stays in the Cloudflare account, not in this file.
+[[kv_namespaces]]
+binding = "PROFILES"
