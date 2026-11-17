@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/smartflowsocial/smartflowsocial-publisher/actions/workflows/ci.yml/badge.svg)](https://github.com/smartflowsocial/smartflowsocial-publisher/actions/workflows/ci.yml)
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue)](LICENSE)
-[![Node 20+](https://img.shields.io/badge/node-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node 26.13.1+](https://img.shields.io/badge/node-26.13.1%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 
 HTTP publisher for [SmartFlowSocial](https://smartflow.social). A Cloudflare Worker that accepts signed Nostr events over HTTP and publishes them to relays, with retries, circuit breakers, and rate limits. No WebSocket client is required.
 
@@ -57,7 +57,7 @@ It is not an open proxy to arbitrary private networks.
 
 ### Prerequisites
 
-- Node.js 20+ and pnpm
+- Node.js 26.13.1+ and pnpm
 - Cloudflare account with Workers enabled
 - Wrangler CLI installed (`npm install -g wrangler`)
 
