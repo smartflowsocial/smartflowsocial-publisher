@@ -48,7 +48,7 @@ It is not an open proxy to arbitrary private networks.
 - **Profile Caching**: Efficient profile fetching with Cloudflare KV caching
 - **Rate Limiting**: Built-in rate limiting per IP or API token
 - **Observability**: Comprehensive logging, metrics, and tracing support
-- **Production Ready**: Battle-tested with timeout handling, error recovery, and monitoring
+- **Timeouts and retries**: Per-relay timeouts, retries, and circuit breakers. A green local test is not a production deploy.
 
 ## Quick Start
 
@@ -68,28 +68,18 @@ cd smartflowsocial-publisher
 # Install dependencies
 pnpm install
 
-# Set up Cloudflare KV namespace
-wrangler kv:namespace create PROFILES
-wrangler kv:namespace create PROFILES --preview
 ```
 
-Add the KV namespace bindings to `wrangler.toml`:
-
-```toml
-[[kv_namespaces]]
-binding = "PROFILES"
-id = "<your-namespace-id>"
-preview_id = "<your-preview-namespace-id>"
-```
+`wrangler.toml` already binds `PROFILES` without an id. Wrangler 4 creates that namespace on deploy and keeps the id in the Cloudflare account. Do not paste a placeholder id into the file.
 
 ### Basic Configuration
 
-Create a `.dev.vars` file for local development:
+Create a gitignored `.dev.vars` file for local development. Do not commit the token.
 
-```bash
+```
 # Required unless you intentionally run a public publisher.
 # Generate: openssl rand -base64 32
-API_TOKEN=your-secret-token
+API_TOKEN=replace-with-a-generated-token
 # ALLOW_UNAUTHENTICATED_PUBLISH=true
 # ALLOW_PRIVATE_RELAYS=true
 
@@ -152,16 +142,16 @@ Cloudflare Workers stop the isolate at 30 seconds. The worker warns at 25 second
 
 All configuration is done through environment variables. Set these in your `wrangler.toml` for production or `.dev.vars` for local development.
 
-| Variable                     | Required | Default | Description                                                                       |
-| ---------------------------- | -------- | ------- | --------------------------------------------------------------------------------- |
-| `PROFILES`                   | Yes      | -       | Cloudflare KV namespace binding for profile caching                               |
-| `API_TOKEN`                  | No       | -       | Secret token for authentication (if set, all requests require `API-TOKEN` header) |
-| `CORS_ENABLED`               | No       | `false` | Enable CORS support (`"true"` to enable)                                          |
-| `CORS_ORIGINS`               | No       | -       | Comma-separated list of allowed origins (required if `CORS_ENABLED=true`)         |
-| `RATE_LIMIT_REQUESTS`        | No       | `100`   | Maximum requests per rate limit window                                            |
-| `RATE_LIMIT_WINDOW_MS`       | No       | `60000` | Rate limit window size in milliseconds (default: 1 minute)                        |
-| `METRICS_EXPORT_ENABLED`     | No       | `false` | Enable metrics export (`"true"` to enable)                                        |
-| `METRICS_EXPORT_INTERVAL_MS` | No       | `60000` | Metrics export interval in milliseconds                                           |
+| Variable                     | Required                      | Default | Description                                                                         |
+| ---------------------------- | ----------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| `PROFILES`                   | Yes                           | -       | Cloudflare KV namespace binding for profile caching                                 |
+| `API_TOKEN`                  | Yes, unless public mode is on | -       | Secret. Set with `wrangler secret put API_TOKEN`. Do not put it in `wrangler.toml`. |
+| `CORS_ENABLED`               | No                            | `false` | Enable CORS support (`"true"` to enable)                                            |
+| `CORS_ORIGINS`               | No                            | -       | Comma-separated list of allowed origins (required if `CORS_ENABLED=true`)           |
+| `RATE_LIMIT_REQUESTS`        | No                            | `100`   | Maximum requests per rate limit window                                              |
+| `RATE_LIMIT_WINDOW_MS`       | No                            | `60000` | Rate limit window size in milliseconds (default: 1 minute)                          |
+| `METRICS_EXPORT_ENABLED`     | No                            | `false` | Enable metrics export (`"true"` to enable)                                          |
+| `METRICS_EXPORT_INTERVAL_MS` | No                            | `60000` | Metrics export interval in milliseconds                                             |
 
 ### Cloudflare KV Setup
 
@@ -169,43 +159,40 @@ The profile data is cached in [Cloudflare KV](https://developers.cloudflare.com/
 
 **Setup Steps:**
 
-1. Create KV namespaces:
-
-```bash
-wrangler kv:namespace create PROFILES
-wrangler kv:namespace create PROFILES --preview
-```
-
-2. Add bindings to `wrangler.toml`:
+The checked-in binding is:
 
 ```toml
 [[kv_namespaces]]
 binding = "PROFILES"
-id = "<production-namespace-id>"
-preview_id = "<preview-namespace-id>"
 ```
+
+Wrangler 4 provisions that namespace on deploy. Do not add a placeholder `id`.
 
 ### Configuration Examples
 
 **Minimal Configuration (Public Worker):**
 
 ```toml
-# wrangler.toml
 [[kv_namespaces]]
 binding = "PROFILES"
-id = "your-namespace-id"
 ```
 
 **Production Configuration (Protected):**
 
+Do not put `API_TOKEN` in `wrangler.toml`. Set it as a secret, including for the production environment:
+
+```bash
+openssl rand -base64 32 | wrangler secret put API_TOKEN
+openssl rand -base64 32 | wrangler secret put API_TOKEN --env production
+```
+
+Non-secret settings can live in `wrangler.toml`:
+
 ```toml
-# wrangler.toml
 [[kv_namespaces]]
 binding = "PROFILES"
-id = "your-namespace-id"
 
 [env.production.vars]
-API_TOKEN = "your-secret-token"
 CORS_ENABLED = "true"
 CORS_ORIGINS = "https://yourdomain.com"
 RATE_LIMIT_REQUESTS = "200"
