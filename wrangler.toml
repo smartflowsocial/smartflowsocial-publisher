@@ -3,6 +3,10 @@ main = "src/index.ts"
 compatibility_date = "2026-11-17"
 compatibility_flags = ["nodejs_compat"]
 
+# Worker Previews (pull-request builds) require this block. It can be empty
+# when the preview uses the same top-level settings as production.
+previews = { }
+
 [observability]
 enabled = false
 head_sampling_rate = 1
