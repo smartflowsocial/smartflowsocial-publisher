@@ -1,6 +1,6 @@
 # Contributing to SmartFlowSocial Publisher
 
-Node.js 20+ and pnpm 10 (see `packageManager` in `package.json`).
+Node.js 26.13.1+ and pnpm 10 (see `.nvmrc` and `packageManager` in `package.json`).
 
 ```bash
 pnpm install
