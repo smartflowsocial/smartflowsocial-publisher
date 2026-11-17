@@ -88,18 +88,16 @@ describe('RelayUrl', () => {
 
     it('should filter out non-string values', () => {
       const input = [RELAY_DAMUS, 123, null, undefined, RELAY_SNORT];
-      const result = normalizeRelayUrls(input as unknown as string[]);
+      const result = normalizeRelayUrls(input);
       expect(result).toHaveLength(2);
     });
 
     it('should throw on non-array input', () => {
-      expect(() => normalizeRelayUrls(null as unknown as string[])).toThrow(INVALID_REQUEST_MSG);
+      expect(() => normalizeRelayUrls(null)).toThrow(INVALID_REQUEST_MSG);
       expect(() => normalizeRelayUrls(undefined as unknown as string[])).toThrow(
         INVALID_REQUEST_MSG
       );
-      expect(() => normalizeRelayUrls('string' as unknown as string[])).toThrow(
-        INVALID_REQUEST_MSG
-      );
+      expect(() => normalizeRelayUrls('string')).toThrow(INVALID_REQUEST_MSG);
     });
 
     it('should preserve order of valid URLs', () => {
@@ -220,7 +218,7 @@ describe('RelayUrl', () => {
     });
 
     it('should handle non-array input', () => {
-      expect(cleanUrls(null as unknown as string[])).toHaveLength(0);
+      expect(cleanUrls(null)).toHaveLength(0);
 
       expect(cleanUrls(undefined as unknown as string[])).toHaveLength(0);
     });

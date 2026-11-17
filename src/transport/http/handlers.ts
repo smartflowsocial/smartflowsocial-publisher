@@ -600,7 +600,7 @@ function validateBatchRequest(body: unknown): { events: unknown[]; relays: strin
     !body ||
     typeof body !== 'object' ||
     !('events' in body) ||
-    !Array.isArray((body as { events: unknown }).events) ||
+    !Array.isArray(body.events) ||
     !('relays' in body) ||
     !Array.isArray((body as { relays: unknown }).relays)
   ) {

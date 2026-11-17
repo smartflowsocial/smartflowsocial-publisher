@@ -5,6 +5,14 @@ interface BechCodec {
   fromWords: (words: number[]) => number[];
 }
 
+function bytesToString(bytes: number[], encoding: 'utf-8' | 'hex'): string {
+  const view = Uint8Array.from(bytes);
+  if (encoding === 'hex') {
+    return Array.from(view, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+  return new TextDecoder().decode(view);
+}
+
 function bech32Codec(moduleValue: BechCodec & { bech32?: BechCodec }): BechCodec {
   return moduleValue.bech32 ?? moduleValue;
 }
@@ -15,7 +23,7 @@ function bech32Codec(moduleValue: BechCodec & { bech32?: BechCodec }): BechCodec
 const bech32Decode = (str: string, encoding: 'utf-8' | 'hex' = 'utf-8'): string => {
   const { words: dataPart } = bech32Codec(bech32Module).decode(str, 2000);
   const requestByteArray = bech32Codec(bech32Module).fromWords(dataPart);
-  return Buffer.from(requestByteArray).toString(encoding);
+  return bytesToString(requestByteArray, encoding);
 };
 
 /**

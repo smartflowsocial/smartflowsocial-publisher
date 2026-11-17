@@ -132,7 +132,7 @@ export function validateEvent(event: unknown): Event {
  */
 export function validateSignedEventSchema(event: unknown): SignedEvent {
   try {
-    const validated = v.parse(SignedEventSchema, event) as Event;
+    const validated = v.parse(SignedEventSchema, event);
     // Additional check for signature format (128-char hex)
     if (!/^[0-9a-fA-F]{128}$/.test(validated.sig)) {
       throw new ValidationError('Invalid signature: must be 128-character hex string', 'event.sig');

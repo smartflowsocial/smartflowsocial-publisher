@@ -6,7 +6,7 @@ import promisePlugin from 'eslint-plugin-promise';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import sonarjsPlugin from 'eslint-plugin-sonarjs';
 import noSecretsPlugin from 'eslint-plugin-no-secrets';
-import eslintComments from 'eslint-plugin-eslint-comments';
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments';
 import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
 
