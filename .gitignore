@@ -1,6 +1,8 @@
 node_modules
 build/
 .env*
+.dev.vars
+.dev.vars.*
 *.log
 .DS_Store
 *.tsbuildinfo
