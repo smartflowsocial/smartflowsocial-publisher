@@ -1,0 +1,19 @@
+# pnpm 12 waits a day before installing a newly published package. This project
+# does not use that delay.
+minimumReleaseAge: 0
+
+allowBuilds:
+  esbuild: true
+  workerd: true
+  sharp: true
+
+overrides:
+  '@typescript-eslint/typescript-estree>typescript': 6.0.2
+  '@typescript-eslint/parser>typescript': 6.0.2
+  '@typescript-eslint/eslint-plugin>typescript': 6.0.2
+  '@typescript-eslint/utils>typescript': 6.0.2
+  '@typescript-eslint/type-utils>typescript': 6.0.2
+  '@typescript-eslint/project-service>typescript': 6.0.2
+  '@typescript-eslint/scope-manager>typescript': 6.0.2
+  '@typescript-eslint/tsconfig-utils>typescript': 6.0.2
+  'typescript-eslint>typescript': 6.0.2
