@@ -1,7 +1,12 @@
 import type { KVNamespace } from '@cloudflare/workers-types';
 import { describe, expect, it, vi } from 'vitest';
 
-import { checkAndRecordEvent, checkReplay, recordEvent } from '../../src/security/replayProtection';
+import {
+  checkAndRecordEvent,
+  checkReplay,
+  recordEvent,
+  releaseReplayRecord,
+} from '../../src/security/replayProtection';
 
 /**
  * Creates a mock KV namespace for testing
@@ -49,6 +54,14 @@ function createMockKV(): KVNamespace {
 const TEST_EVENT_ID = 'test-event-id-123';
 
 describe('replayProtection', () => {
+  it('drops a claim so a failed publish can be submitted again', async () => {
+    const kv = createMockKV();
+    expect(await checkAndRecordEvent(TEST_EVENT_ID, kv)).toBe(false);
+    await releaseReplayRecord(TEST_EVENT_ID, kv);
+    expect(await checkReplay(TEST_EVENT_ID, kv)).toBe(false);
+    expect(await checkAndRecordEvent(TEST_EVENT_ID, kv)).toBe(false);
+  });
+
   describe('checkReplay', () => {
     it('should return false for new event', async () => {
       const kv = createMockKV();

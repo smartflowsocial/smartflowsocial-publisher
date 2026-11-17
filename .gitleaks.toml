@@ -1,0 +1,11 @@
+title = "SmartFlowSocial publisher scan"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documentation placeholders in curl examples. These are not credentials."
+regexes = [
+  '''your-secret-token''',
+  '''your-token''',
+]

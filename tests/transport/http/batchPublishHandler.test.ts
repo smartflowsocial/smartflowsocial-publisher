@@ -2,7 +2,7 @@ import type { ExecutionContext } from '@cloudflare/workers-types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { publishBatch } from '../../../src/core/BatchPublisher';
-import { checkAndRecordEvent } from '../../../src/security/replayProtection';
+import { checkAndRecordEvent, releaseReplayRecord } from '../../../src/security/replayProtection';
 import { batchPublishHandler } from '../../../src/transport/http/handlers';
 import type { Env } from '../../../src/types';
 import { createSignedEvent } from '../../utils/fixtures';
@@ -19,6 +19,7 @@ vi.mock('../../../src/core/BatchPublisher', () => ({
 
 vi.mock('../../../src/security/replayProtection', () => ({
   checkAndRecordEvent: vi.fn(async () => false),
+  releaseReplayRecord: vi.fn(async () => {}),
 }));
 
 vi.mock('../../../src/security/eventSignature', () => ({
@@ -35,6 +36,7 @@ vi.mock('../../../src/adapters/nostr/relayAdapter', () => ({
 
 const mockedBatch = vi.mocked(publishBatch);
 const mockedReplay = vi.mocked(checkAndRecordEvent);
+const mockedRelease = vi.mocked(releaseReplayRecord);
 
 describe('batchPublishHandler', () => {
   const env: Env = {
@@ -54,6 +56,7 @@ describe('batchPublishHandler', () => {
   beforeEach(() => {
     mockedReplay.mockReset();
     mockedReplay.mockResolvedValue(false);
+    mockedRelease.mockReset();
     mockedBatch.mockClear();
   });
 
@@ -135,6 +138,38 @@ describe('batchPublishHandler', () => {
       ctx
     );
     expect(response.status).toBe(409);
+    expect(mockedBatch).not.toHaveBeenCalled();
+  });
+
+  it('releases the replay claim when every relay fails', async () => {
+    const event = createSignedEvent();
+    mockedBatch.mockResolvedValueOnce({
+      results: [{ eventId: event.id, outcome: { status: 'failed', relays: [] } }],
+      totalEvents: 1,
+      successfulEvents: 0,
+      failedEvents: 1,
+    });
+    const response = await batchPublishHandler(
+      request({ relays: ['wss://relay.example.com'], events: [event] }),
+      env,
+      ctx
+    );
+    expect(response.status).toBe(200);
+    expect(mockedRelease).toHaveBeenCalledWith(event.id, env.PROFILES);
+  });
+
+  it('releases a new claim when the batch also contains a replay', async () => {
+    const fresh = createSignedEvent({ id: 'd'.repeat(64) });
+    const replayed = createSignedEvent({ id: 'e'.repeat(64) });
+    mockedReplay.mockImplementation(async (eventId: string) => eventId === replayed.id);
+    const response = await batchPublishHandler(
+      request({ relays: ['wss://relay.example.com'], events: [fresh, replayed] }),
+      env,
+      ctx
+    );
+    expect(response.status).toBe(409);
+    expect(mockedRelease).toHaveBeenCalledWith(fresh.id, env.PROFILES);
+    expect(mockedRelease).not.toHaveBeenCalledWith(replayed.id, env.PROFILES);
     expect(mockedBatch).not.toHaveBeenCalled();
   });
 

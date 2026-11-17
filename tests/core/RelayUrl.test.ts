@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { cleanUrls, normalizeRelayUrls } from '../../src/core/RelayUrl';
+import { cleanUrls, normalizeRelayUrls, privateRelaysAllowed } from '../../src/core/RelayUrl';
 
 const RELAY_DAMUS = 'wss://relay.damus.io';
 const RELAY_SNORT = 'wss://relay.snort.social';
@@ -153,10 +153,38 @@ describe('RelayUrl', () => {
     });
 
     it('allows private relay URLs only when explicitly enabled', () => {
-      const result = normalizeRelayUrls(['ws://127.0.0.1:8080'], {
+      const result = normalizeRelayUrls(['wss://192.168.1.20'], {
         allowPrivateNetworks: true,
       });
-      expect(result).toEqual(['wss://127.0.0.1:8080']);
+      expect(result).toEqual(['wss://192.168.1.20']);
+    });
+
+    it('keeps ws on loopback only when private relays are enabled', () => {
+      expect(normalizeRelayUrls(['ws://127.0.0.1:8080'], { allowPrivateNetworks: true })).toEqual([
+        'ws://127.0.0.1:8080',
+      ]);
+      expect(
+        normalizeRelayUrls(['ws://relay.example.com'], { allowPrivateNetworks: true })
+      ).toEqual(['wss://relay.example.com']);
+    });
+
+    it('does not allow private relays in production or when the environment is unset', () => {
+      expect(
+        privateRelaysAllowed({
+          ALLOW_PRIVATE_RELAYS: 'true',
+          ENVIRONMENT: 'production',
+        })
+      ).toBe(false);
+      expect(privateRelaysAllowed({ ALLOW_PRIVATE_RELAYS: 'true' })).toBe(false);
+      expect(privateRelaysAllowed({ ALLOW_PRIVATE_RELAYS: 'true', ENVIRONMENT: 'test' })).toBe(
+        true
+      );
+      expect(
+        privateRelaysAllowed({
+          ALLOW_PRIVATE_RELAYS: 'false',
+          ENVIRONMENT: 'development',
+        })
+      ).toBe(false);
     });
 
     it('should handle URLs with paths', () => {

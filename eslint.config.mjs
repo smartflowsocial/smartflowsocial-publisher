@@ -19,6 +19,7 @@ export default [
       '*.config.js',
       '*.config.mjs',
       'vitest.config.ts',
+      'vitest.worker.config.ts',
     ],
   },
   js.configs.recommended,
