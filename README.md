@@ -32,9 +32,12 @@ The publisher is private infrastructure for SmartFlowSocial. Publish routes requ
 unless `ALLOW_UNAUTHENTICATED_PUBLISH` is exactly `true`. `GET /health` stays open for probes.
 
 In the default private mode the worker still checks event signatures, limits body size, rate-limits
-callers, and refuses relay URLs on loopback, link-local, and private addresses. Set
-`ALLOW_PRIVATE_RELAYS` to `true` only for local relays. Set `ENVIRONMENT` to `production` on the
-production worker so a missing token fails startup when public mode is off.
+callers, and refuses relay URLs on loopback, link-local, and private addresses. `ALLOW_PRIVATE_RELAYS`
+is ignored unless `ENVIRONMENT` is `test` or `development`. Production keeps the private-network
+block even if that flag is set. On those local environments, `ws://127.0.0.1`, `ws://localhost`, and
+`ws://[::1]` stay on `ws://` so a disposable relay does not need TLS. Every other relay is still
+normalized to `wss://`. Set `ENVIRONMENT` to `production` on the production worker so a missing
+token fails startup when public mode is off.
 
 Public mode is an explicit choice. It keeps the signature, size, rate-limit, and relay-host checks.
 It is not an open proxy to arbitrary private networks.
@@ -81,7 +84,8 @@ Create a gitignored `.dev.vars` file for local development. Do not commit the to
 # Generate: openssl rand -base64 32
 API_TOKEN=replace-with-a-generated-token
 # ALLOW_UNAUTHENTICATED_PUBLISH=true
-# ALLOW_PRIVATE_RELAYS=true
+# ALLOW_PRIVATE_RELAYS=true is ignored unless ENVIRONMENT is test or development.
+# ENVIRONMENT=development
 
 # Optional: Enable CORS for browser clients
 CORS_ENABLED=true
@@ -551,6 +555,10 @@ pnpm test:integration
 pnpm test:chaos
 pnpm test:property
 pnpm test:security
+
+# Actual worker runtime against a disposable loopback relay.
+# This is separate from the unit tests. It does not use a public relay or a production token.
+pnpm test:worker
 
 # Type checking
 pnpm typecheck

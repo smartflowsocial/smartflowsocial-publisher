@@ -58,8 +58,21 @@ export async function recordEvent(eventId: string, kv: KVNamespace): Promise<voi
 }
 
 /**
- * Checks and records an event atomically to prevent race conditions
- * This is the recommended way to use replay protection
+ * Removes a replay claim after every selected relay failed. A successful
+ * publish keeps the claim so the same event is not sent again for 24 hours.
+ */
+export async function releaseReplayRecord(eventId: string, kv: KVNamespace): Promise<void> {
+  const key = `${REPLAY_KEY_PREFIX}${eventId}`;
+  try {
+    await kv.delete(key);
+  } catch (error) {
+    console.error(`Failed to release replay protection for ${eventId}:`, error);
+  }
+}
+
+/**
+ * Checks and records an event atomically to prevent race conditions.
+ * This is the recommended way to use replay protection.
  *
  * @param eventId The event ID to check and record
  * @param kv The KV namespace to use (reuses PROFILES namespace)

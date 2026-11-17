@@ -21,6 +21,26 @@ function isPrivateIpv4(host: string): boolean {
   return false;
 }
 
+function isLoopbackHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+}
+
+/**
+ * Loopback relays are allowed only for an explicit local publisher.
+ * Production, and any worker that does not say it is test or development,
+ * keeps the private-network block even if the flag is set.
+ */
+export function privateRelaysAllowed(env: {
+  ALLOW_PRIVATE_RELAYS?: string;
+  ENVIRONMENT?: string;
+}): boolean {
+  return (
+    env.ALLOW_PRIVATE_RELAYS === 'true' &&
+    (env.ENVIRONMENT === 'test' || env.ENVIRONMENT === 'development')
+  );
+}
+
 function isBlockedRelayHost(hostname: string): boolean {
   const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
   if (
@@ -74,8 +94,13 @@ function normalizeSingleRelay(relay: string, options?: NormalizeRelayOptions): s
       throw new ValidationError('Relay URL is not allowed', 'relays');
     }
 
-    // Ensure wss:// scheme (reject non-wss)
-    if (urlObj.protocol !== 'wss:') {
+    // Public relays are wss. A test or development publisher may keep ws://
+    // on loopback so a disposable relay does not need a certificate.
+    const keepLoopbackWs =
+      Boolean(options?.allowPrivateNetworks) &&
+      urlObj.protocol === 'ws:' &&
+      isLoopbackHost(urlObj.hostname);
+    if (!keepLoopbackWs && urlObj.protocol !== 'wss:') {
       // Try to convert http/https/ws to wss
       if (urlObj.protocol === 'ws:') {
         urlObj.protocol = 'wss:';

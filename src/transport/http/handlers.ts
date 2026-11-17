@@ -6,7 +6,11 @@ import { ReplayError, ValidationError } from '../../core/errors';
 import { fetchProfile } from '../../core/ProfileEngine';
 import { publishSignedEvent, publishSignedEventStreaming } from '../../core/PublishEngine';
 import type { Relay } from '../../core/Relay';
-import { normalizeRelayUrls, type NormalizeRelayOptions } from '../../core/RelayUrl';
+import {
+  normalizeRelayUrls,
+  privateRelaysAllowed,
+  type NormalizeRelayOptions,
+} from '../../core/RelayUrl';
 import type { SignedEvent } from '../../core/types';
 import type { Logger } from '../../observability/logger';
 import { ConsoleLogger } from '../../observability/logger';
@@ -18,7 +22,7 @@ import { defaultPolicy } from '../../policies/defaultPolicy';
 import { defaultProfilePolicy } from '../../policies/ProfilePolicy';
 import type { PublishPolicy } from '../../policies/PublishPolicy';
 import { assertEventSignature } from '../../security/eventSignature';
-import { checkAndRecordEvent } from '../../security/replayProtection';
+import { checkAndRecordEvent, releaseReplayRecord } from '../../security/replayProtection';
 import type { Env } from '../../types';
 import { validateProfileRequest } from '../../validation/schemas';
 
@@ -101,7 +105,8 @@ async function handleSSEPublish(
   logger: Logger,
   metrics: Metrics,
   correlationId: string | undefined,
-  _startTime: number
+  _startTime: number,
+  profiles: Env['PROFILES']
 ): Promise<Response> {
   const headers = createSSEHeaders(correlationId);
   const totalRelays = relays.length;
@@ -166,6 +171,9 @@ async function handleSSEPublish(
           },
         });
         controller.enqueue(encoder.encode(completeEvent));
+        if (outcome.status === 'failed') {
+          await releaseReplayRecord(event.id, profiles);
+        }
 
         metrics.increment(METRIC_HTTP_RESPONSES, METRIC_INCREMENT_VALUE, {
           endpoint: ENDPOINT_PUBLISH,
@@ -278,13 +286,27 @@ export async function publishHandler(
 
     // Handle SSE streaming mode
     if (streamMode) {
-      return handleSSEPublish(event, relays, policy, logger, metrics, correlationId, startTime);
+      return handleSSEPublish(
+        event,
+        relays,
+        policy,
+        logger,
+        metrics,
+        correlationId,
+        startTime,
+        env.PROFILES
+      );
     }
 
     // Standard non-streaming mode
     // Publish using core engine
     // event is already validated as SignedEvent by parsePublishRequest
     const outcome = await publishSignedEvent(event, relays, policy, logger, metrics);
+    if (outcome.status === 'failed') {
+      // The relay did not accept the event. Drop the claim so a later try can
+      // publish it. A success or partial result keeps the claim.
+      await releaseReplayRecord(event.id, env.PROFILES);
+    }
 
     // Map outcome to HTTP response
     const response = mapPublishOutcomeToResponse(outcome);
@@ -373,7 +395,7 @@ async function validateAndReadRequestBody(
  * Extracted to reduce cognitive complexity
  */
 function relayOptionsFromEnv(env: Env): NormalizeRelayOptions {
-  return { allowPrivateNetworks: env.ALLOW_PRIVATE_RELAYS === 'true' };
+  return { allowPrivateNetworks: privateRelaysAllowed(env) };
 }
 
 async function validateAndNormalizeProfileRequest(
@@ -686,10 +708,16 @@ export async function batchPublishHandler(
     const replayChecks = await Promise.all(
       signedEvents.map((event) => checkAndRecordEvent(event.id, env.PROFILES))
     );
+    const newlyClaimed = signedEvents.filter((_, index) => !replayChecks[index]);
+    const releaseClaims = async (events: readonly { id: string }[]) => {
+      await Promise.all(events.map((event) => releaseReplayRecord(event.id, env.PROFILES)));
+    };
 
     // Find any replay events
     const replayEvents = signedEvents.filter((_, index) => replayChecks[index]);
     if (replayEvents.length > 0) {
+      // The new events in this batch were claimed and then not published.
+      await releaseClaims(newlyClaimed);
       const eventIds = replayEvents.map((e) => e.id).join(', ');
       throw new ReplayError(
         `Batch contains ${replayEvents.length} event(s) that have already been published: ${eventIds}`,
@@ -704,6 +732,7 @@ export async function batchPublishHandler(
     // Normalize relays
     const relayUrls = normalizeRelayUrls(batchRequest.relays, relayOptionsFromEnv(env));
     if (relayUrls.length === 0) {
+      await releaseClaims(newlyClaimed);
       throw new ValidationError('No valid relays after normalization', 'relays');
     }
 
@@ -714,8 +743,14 @@ export async function batchPublishHandler(
     // Create relay adapters
     const relays = relayUrls.map((url) => new NostrRelayAdapter(url));
 
-    // Publish batch
+    // Publish batch. A failed event drops its claim so a later request can retry.
+    // A success or partial result keeps the claim.
     const batchResult = await publishBatch(signedEvents, relays, policy, logger, metrics);
+    await releaseClaims(
+      batchResult.results
+        .filter((result) => result.outcome.status === 'failed')
+        .map((result) => ({ id: result.eventId }))
+    );
 
     metrics.increment(METRIC_HTTP_RESPONSES, METRIC_INCREMENT_VALUE, {
       endpoint: 'batch',

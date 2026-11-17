@@ -8,7 +8,10 @@ export interface Env {
    * Otherwise a missing API_TOKEN rejects publish requests.
    */
   ALLOW_UNAUTHENTICATED_PUBLISH?: string;
-  /** Set to "true" to allow relay URLs on private or loopback hosts. */
+  /**
+   * Set to "true" to allow relay URLs on private or loopback hosts.
+   * Ignored unless ENVIRONMENT is "test" or "development".
+   */
   ALLOW_PRIVATE_RELAYS?: string;
   /** "production" makes a missing API_TOKEN a startup error unless public mode is set. */
   ENVIRONMENT?: string;
