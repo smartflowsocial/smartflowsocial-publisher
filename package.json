@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/smartflowsocial/smartflowsocial-publisher/issues"
   },
-  "packageManager": "pnpm@10.27.0",
+  "packageManager": "pnpm@12.21.0",
   "engines": {
     "node": ">=26.13.1"
   },
@@ -44,24 +44,6 @@
     "ws": "^8.23.0"
   },
   "private": true,
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "workerd",
-      "sharp"
-    ],
-    "overrides": {
-      "@typescript-eslint/typescript-estree>typescript": "6.0.2",
-      "@typescript-eslint/parser>typescript": "6.0.2",
-      "@typescript-eslint/eslint-plugin>typescript": "6.0.2",
-      "@typescript-eslint/utils>typescript": "6.0.2",
-      "@typescript-eslint/type-utils>typescript": "6.0.2",
-      "@typescript-eslint/project-service>typescript": "6.0.2",
-      "@typescript-eslint/scope-manager>typescript": "6.0.2",
-      "@typescript-eslint/tsconfig-utils>typescript": "6.0.2",
-      "typescript-eslint>typescript": "6.0.2"
-    }
-  },
   "scripts": {
     "prepare": "husky",
     "build": "pnpm run typecheck && wrangler deploy --dry-run",
