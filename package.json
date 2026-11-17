@@ -14,33 +14,34 @@
   },
   "packageManager": "pnpm@10.27.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.22.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231218.0",
-    "@eslint/js": "^9.39.2",
-    "@types/node": "^20.11.0",
+    "@cloudflare/workers-types": "^5.20261117.1",
+    "@eslint-community/eslint-plugin-eslint-comments": "4.8.1",
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^26.6.6",
     "@types/ws": "^8.18.2",
-    "@typescript-eslint/eslint-plugin": "^8.52.0",
-    "@typescript-eslint/parser": "^8.52.0",
-    "@vitest/coverage-v8": "^4.0.17",
-    "@vitest/ui": "^4.0.17",
-    "eslint": "^9.39.2",
+    "@typescript-eslint/eslint-plugin": "^8.73.0",
+    "@typescript-eslint/parser": "^8.73.0",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "@vitest/coverage-v8": "^5.1.0",
+    "@vitest/ui": "^5.1.0",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-no-secrets": "^2.2.1",
-    "eslint-plugin-promise": "^7.2.1",
-    "eslint-plugin-sonarjs": "^3.0.5",
-    "eslint-plugin-unicorn": "^62.0.0",
-    "globals": "^17.0.0",
+    "eslint-plugin-no-secrets": "^2.3.3",
+    "eslint-plugin-promise": "^7.3.0",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "eslint-plugin-unicorn": "^65.0.1",
+    "globals": "^17.14.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
-    "prettier": "3.7.4",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17",
-    "wrangler": "4.73.0",
-    "ws": "^8.18.3"
+    "lint-staged": "^17.6.1",
+    "prettier": "3.10.1",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vitest": "^5.1.0",
+    "wrangler": "4.164.0",
+    "ws": "^8.23.0"
   },
   "private": true,
   "pnpm": {
@@ -48,7 +49,18 @@
       "esbuild",
       "workerd",
       "sharp"
-    ]
+    ],
+    "overrides": {
+      "@typescript-eslint/typescript-estree>typescript": "6.0.2",
+      "@typescript-eslint/parser>typescript": "6.0.2",
+      "@typescript-eslint/eslint-plugin>typescript": "6.0.2",
+      "@typescript-eslint/utils>typescript": "6.0.2",
+      "@typescript-eslint/type-utils>typescript": "6.0.2",
+      "@typescript-eslint/project-service>typescript": "6.0.2",
+      "@typescript-eslint/scope-manager>typescript": "6.0.2",
+      "@typescript-eslint/tsconfig-utils>typescript": "6.0.2",
+      "typescript-eslint>typescript": "6.0.2"
+    }
   },
   "scripts": {
     "prepare": "husky",
@@ -77,7 +89,7 @@
   },
   "dependencies": {
     "bech32": "^2.0.0",
-    "nostr-tools": "^2.26.0",
+    "nostr-tools": "^2.26.1",
     "valibot": "^1.5.0"
   },
   "lint-staged": {

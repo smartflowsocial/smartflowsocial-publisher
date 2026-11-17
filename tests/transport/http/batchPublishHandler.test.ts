@@ -51,6 +51,17 @@ describe('batchPublishHandler', () => {
     waitUntil: vi.fn(),
     passThroughOnException: vi.fn(),
     props: {},
+    exports: {},
+    mapVirtualHost: vi.fn(() => ''),
+    abort: vi.fn(),
+    tracing: {
+      enterSpan: vi.fn(),
+      startActiveSpan: vi.fn(),
+      startSpan: vi.fn(),
+      getActiveSpan: vi.fn(),
+      withActiveSpan: vi.fn(),
+      Span: class {} as unknown as ExecutionContext['tracing']['Span'],
+    },
   };
 
   beforeEach(() => {
