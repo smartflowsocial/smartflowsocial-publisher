@@ -4,9 +4,11 @@
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue)](LICENSE)
 [![Node 26.13.1+](https://img.shields.io/badge/node-26.13.1%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 
-HTTP publisher for [SmartFlowSocial](https://smartflow.social). A Cloudflare Worker that accepts signed Nostr events over HTTP and publishes them to relays, with retries, circuit breakers, and rate limits. No WebSocket client is required.
+> **Historical repository.** SmartFlowSocial no longer uses this worker. The maintained utility is [nostrmash/nostr-publish-gateway](https://github.com/nostrmash/nostr-publish-gateway). That project has its own Git history and does not inherit this one. It is private while source provenance is reviewed. This repository stays available as a reference. It has not been transferred or archived.
 
-Part of SmartFlowSocial. Related pieces: [app](https://github.com/smartflowsocial/smartflowsocial), [Blastr](https://github.com/smartflowsocial/smartflowsocial-blastr), [Blossom](https://github.com/smartflowsocial/smartflowsocial-blossom), [cache worker](https://github.com/smartflowsocial/smartflowsocial-cache-worker).
+This tree is the older Cloudflare Worker that accepted signed Nostr events over HTTP and published them to relays. It is not an application backend anymore.
+
+Related historical pieces: [app](https://github.com/smartflowsocial/smartflowsocial), [Blastr](https://github.com/smartflowsocial/smartflowsocial-blastr), [Blossom](https://github.com/smartflowsocial/smartflowsocial-blossom), [cache worker](https://github.com/smartflowsocial/smartflowsocial-cache-worker).
 
 > Documentation: API reference in [docs/API.md](docs/API.md). Architecture in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
