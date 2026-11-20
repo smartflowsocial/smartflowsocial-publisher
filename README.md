@@ -4,7 +4,7 @@
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue)](LICENSE)
 [![Node 26.13.1+](https://img.shields.io/badge/node-26.13.1%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 
-> **Historical repository.** SmartFlowSocial no longer uses this worker. The maintained utility is [nostrmash/nostr-publish-gateway](https://github.com/nostrmash/nostr-publish-gateway). That project has its own Git history and does not inherit this one. It is private while source provenance is reviewed. This repository stays available as a reference. It has not been transferred or archived.
+> **Historical repository.** SmartFlowSocial no longer uses this worker. The maintained utility is [nostrmash/nostr-publish-gateway](https://github.com/nostrmash/nostr-publish-gateway). That project has its own Git history and does not inherit this one. This repository stays available as a reference. It has not been transferred or archived.
 
 This tree is the older Cloudflare Worker that accepted signed Nostr events over HTTP and published them to relays. It is not an application backend anymore.
 
