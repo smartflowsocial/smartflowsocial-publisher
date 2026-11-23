@@ -8,7 +8,7 @@ import { ValidationError } from '../core/errors';
  * Format checks alone are not enough: a 128-character hex string is not a signature.
  */
 export function assertEventSignature(event: Event): void {
-  let valid = false;
+  let valid: boolean;
   try {
     valid = verifyEvent(event);
   } catch {
